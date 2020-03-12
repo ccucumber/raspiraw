@@ -9,7 +9,7 @@ tiff-3.8.2: tiff-3.8.2.tar.gz libtiff.patch
 	cat "libtiff.patch" | patch -p0 -f
 
 libtiff.patch:
-	wget -nc 'http://www.cybercom.net/~dcoffin/dcraw/libtiff.patch'
+	wget -nc 'http://www.dechifro.org/dcraw/libtiff.patch'
 
 local/lib/libtiff.a: tiff-3.8.2
 	cd $< ; ./configure --prefix=$(PWD)/local
