@@ -1,7 +1,12 @@
-raspiraw
+raspiraw-modified
 ========
 
-Raspberry Pi CSI camera board JPEG+RAW photo to Adobe DNG converter (``raspi_dng``)
+Two programs:
+In C: ``raspi_dng``
+
+and
+
+in Python: ``mipi_raw10_to_jpg.py``
 
 
 Prerequisites
@@ -18,19 +23,16 @@ Run ``make``, you will need a working Internet connection on the first run.
 Usage
 =====
 
-* Take a picture on the RPi embedding RAW data:
-	
-        raspistill --raw -o out.jpg
-
 * Transfer the output file to where you have ``raspi_dng``
-* Convert to Adobe DNG (no EXIF yet):
+* Convert to Adobe DNG:
 
-        ./raspi_dng out.jpg out.dng
+        ./raspi_dng out.raw out.dng
+     
+* Or use Python:
 
-* Copy EXIF metadata from JPEG (date, exposure, lens, metering mode, etc.):
-
-        exiftool -tagsFromFile out.jpg out.dng -o out.exif.dng
-
+        mipi_raw10_to_jpg.py out.raw out.jpg 4656 3496 bayer_rg
+        mipi_raw10_to_jpg.py out.raw out.tiff 4656 3496 bayer_rg
+     
 
 See also
 ========
