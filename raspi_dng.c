@@ -30,12 +30,11 @@
 
 
 #define LINELEN 256            // how long a string we need to hold the filename
-#define RAWBLOCKSIZE 6404096
-#define HEADERSIZE 32768
-#define ROWSIZE 3264 // number of bytes per row of pixels, including 24 'other' bytes at end
+#define RAWBLOCKSIZE 20407296
+#define ROWSIZE 5840 // number of bytes per row of pixels, including 24 'other' bytes at end
 #define IDSIZE 4    // number of bytes in raw header ID string
-#define HPIXELS 2592   // number of horizontal pixels on OV5647 sensor
-#define VPIXELS 1944   // number of vertical pixels on OV5647 sensor
+#define HPIXELS 4672   // number of horizontal pixels on IMX298 sensor
+#define VPIXELS 3494   // number of vertical pixels on IMX298 sensor
 
 int main (int argc, char **argv)
 {
@@ -57,7 +56,6 @@ int main (int argc, char **argv)
 	char datetime[64];
 	FILE *ifp;
 	TIFF *tif;
-
 	const char* fname = argv[1];
 	unsigned long fileLen;  // number of bytes in file
 	unsigned long offset;  // offset into file to start reading pixel data
@@ -87,7 +85,7 @@ int main (int argc, char **argv)
 		fprintf(stderr, "File %s too short to contain expected 6MB RAW data.\n", fname);
 		exit(1);
 	}
-	offset = (fileLen - RAWBLOCKSIZE) ;  // location in file the raw header starts
+	offset = 0 ;  // location in file the raw header starts
 	fseek(ifp, offset, SEEK_SET); 
  
 	//printf("File length = %d bytes.\n",fileLen);
@@ -107,13 +105,13 @@ int main (int argc, char **argv)
 	//fprintf(stderr, "Writing TIFF header...\n");
 	
 	TIFFSetField (tif, TIFFTAG_SUBFILETYPE, 1);
-	TIFFSetField (tif, TIFFTAG_IMAGEWIDTH, HPIXELS >> 4);
-	TIFFSetField (tif, TIFFTAG_IMAGELENGTH, VPIXELS >> 4);
+	TIFFSetField (tif, TIFFTAG_IMAGEWIDTH, HPIXELS >> 2);
+	TIFFSetField (tif, TIFFTAG_IMAGELENGTH, VPIXELS >> 2);
 	TIFFSetField (tif, TIFFTAG_BITSPERSAMPLE, 8);
 	TIFFSetField (tif, TIFFTAG_COMPRESSION, COMPRESSION_NONE);
 	TIFFSetField (tif, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
 	TIFFSetField (tif, TIFFTAG_MAKE, "Raspberry Pi");
-	TIFFSetField (tif, TIFFTAG_MODEL, "Model OV5647");
+	TIFFSetField (tif, TIFFTAG_MODEL, "Model I");
 	TIFFSetField (tif, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);
 	TIFFSetField (tif, TIFFTAG_SAMPLESPERPIXEL, 3);
 	TIFFSetField (tif, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
@@ -122,7 +120,7 @@ int main (int argc, char **argv)
 	TIFFSetField (tif, TIFFTAG_SUBIFD, 1, &sub_offset);
 	TIFFSetField (tif, TIFFTAG_DNGVERSION, "\001\001\0\0");
 	TIFFSetField (tif, TIFFTAG_DNGBACKWARDVERSION, "\001\0\0\0");
-	TIFFSetField (tif, TIFFTAG_UNIQUECAMERAMODEL, "Raspberry Pi - OV5647");
+	TIFFSetField (tif, TIFFTAG_UNIQUECAMERAMODEL, "Raspberry Pi - IMX298");
 	TIFFSetField (tif, TIFFTAG_COLORMATRIX1, 9, cam_xyz);
 	TIFFSetField (tif, TIFFTAG_ASSHOTNEUTRAL, 3, neutral);
 	TIFFSetField (tif, TIFFTAG_CALIBRATIONILLUMINANT1, 21);
@@ -157,7 +155,7 @@ int main (int argc, char **argv)
 	fread(buffer, IDSIZE, 1, ifp);
 
 	// now on to the pixel data
-	offset = (fileLen - RAWBLOCKSIZE) + HEADERSIZE;  // location in file the raw pixel data starts
+	offset = 0;  // location in file the raw pixel data starts
 	fseek(ifp, offset, SEEK_SET);
 
 	for (row=0; row < VPIXELS; row++) {  // iterate over pixel rows
