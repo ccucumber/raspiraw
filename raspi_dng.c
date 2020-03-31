@@ -30,11 +30,10 @@
 
 
 #define LINELEN 256            // how long a string we need to hold the filename
-#define RAWBLOCKSIZE 20407296
-#define ROWSIZE 5840 // number of bytes per row of pixels, including 24 'other' bytes at end
-#define IDSIZE 4    // number of bytes in raw header ID string
+#define RAWBLOCKSIZE 20346720
+#define ROWSIZE 5824 // number of bytes per row of pixels, including 24 'other' bytes at end
 #define HPIXELS 4672   // number of horizontal pixels on IMX298 sensor
-#define VPIXELS 3494   // number of vertical pixels on IMX298 sensor
+#define VPIXELS 3496   // number of vertical pixels on IMX298 sensor
 
 int main (int argc, char **argv)
 {
@@ -88,8 +87,8 @@ int main (int argc, char **argv)
 	offset = 0 ;  // location in file the raw header starts
 	fseek(ifp, offset, SEEK_SET); 
  
-	//printf("File length = %d bytes.\n",fileLen);
-	//printf("offset = %d:",offset);
+	printf("File length = %d bytes.\n",fileLen);
+	printf("offset = %d:",offset);
 
 	//Allocate memory for one line of pixel data
 	buffer=(unsigned char *)malloc(ROWSIZE+1);
@@ -152,8 +151,10 @@ int main (int argc, char **argv)
 	// with 3264 bytes per row x 1944 rows we have 6345216 bytes, that is the full 2592x1944 image area.
  
 	//Read one line of pixel data into buffer
-	fread(buffer, IDSIZE, 1, ifp);
+	fread(buffer, 0, 1, ifp);
 
+    
+ 
 	// now on to the pixel data
 	offset = 0;  // location in file the raw pixel data starts
 	fseek(ifp, offset, SEEK_SET);
@@ -162,15 +163,15 @@ int main (int argc, char **argv)
 		fread(buffer, ROWSIZE, 1, ifp);  // read next line of pixel data
 		j = 0;  // offset into buffer
 		for (col = 0; col < HPIXELS; col+= 4) {  // iterate over pixel columns
-			pixel[col+0] = buffer[j++] << 8;
-			pixel[col+1] = buffer[j++] << 8;
-			pixel[col+2] = buffer[j++] << 8;
-			pixel[col+3] = buffer[j++] << 8;
+			pixel[col+0] = buffer[j++] << 2;
+			pixel[col+1] = buffer[j++] << 2;
+			pixel[col+2] = buffer[j++] << 2;
+			pixel[col+3] = buffer[j++] << 2;
 			split = buffer[j++];    // low-order packed bits from previous 4 pixels
-			pixel[col+0] += (split & 0b11000000);  // unpack them bits, add to 16-bit values, left-justified
-			pixel[col+1] += (split & 0b00110000)<<2;
-			pixel[col+2] += (split & 0b00001100)<<4;
-			pixel[col+3] += (split & 0b00000011)<<6;
+			pixel[col+0] += (split    & 0b00000011);  // unpack them bits, add to 16-bit values, left-justified
+			pixel[col+1] += (split>>2 & 0b00000011);
+			pixel[col+2] += (split>>4 & 0b00000011);
+			pixel[col+3] += (split>>6 & 0b00000011);
 		}
 		if (TIFFWriteScanline (tif, pixel, row, 0) != 1) {
 			fprintf(stderr, "Error writing TIFF scanline.");

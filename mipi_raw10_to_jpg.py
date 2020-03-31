@@ -44,10 +44,13 @@ def remove_padding(data, width, height, bit_width):
     real_width = width / 8 * bit_width
     align_width = align_up(real_width, 32)
     align_height = align_up(height, 16)
-    
+    print (align_width, align_height)
     buff = buff.reshape(align_height, align_width)
+    print len(buff)
     buff = buff[:height, :real_width]
+    print len(buff)
     buff = buff.reshape(height * real_width)
+    print (height*real_width)
     return buff
 
 
